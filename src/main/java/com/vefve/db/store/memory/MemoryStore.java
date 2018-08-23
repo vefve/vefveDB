@@ -1,6 +1,5 @@
 package com.vefve.db.store.memory;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.vefve.db.Configuration;
@@ -8,7 +7,7 @@ import com.vefve.db.store.Store;
 
 public class MemoryStore<Key extends Comparable<Key>, Value> implements Store<Key, Value> {
 
-	private Map<Key, Value> dbStore;
+	private ConcurrentHashMap<Key, Value> dbStore;
 
 	public MemoryStore(ConcurrentHashMap<Key, Value> dbStore) {
 
@@ -16,6 +15,7 @@ public class MemoryStore<Key extends Comparable<Key>, Value> implements Store<Ke
 
 	}
 
+	
 	@Override
 	public Value get(Key key) {
 
@@ -23,6 +23,7 @@ public class MemoryStore<Key extends Comparable<Key>, Value> implements Store<Ke
 
 	}
 
+	
 	@Override
 	public boolean put(Key key, Value value) {
 		
@@ -40,6 +41,17 @@ public class MemoryStore<Key extends Comparable<Key>, Value> implements Store<Ke
 			
 		}
 	}
+	
+	
+	public void remove(Key key) {
+		
+		synchronized(this) {
+			
+			// The case where the key is not present in the dbStore is already handled by remove method.
+			this.dbStore.remove(key);
+			
+		}
+	}
 
 	public boolean containsKey(Key key) {
 
@@ -47,6 +59,7 @@ public class MemoryStore<Key extends Comparable<Key>, Value> implements Store<Ke
 
 	}
 
+	
 	/**
 	 * 
 	 * @return Whether the dbStore is full or not. If the number of keys in the
@@ -55,7 +68,7 @@ public class MemoryStore<Key extends Comparable<Key>, Value> implements Store<Ke
 	 */
 	public boolean isFull() {
 
-		if (this.dbStore.size() < Configuration.MEMORY_STORAGE_SIZE) {
+		if (this.dbStore.mappingCount() < Configuration.MEMORY_STORAGE_SIZE) {
 
 			return false;
 
@@ -63,5 +76,12 @@ public class MemoryStore<Key extends Comparable<Key>, Value> implements Store<Ke
 
 		return true;
 
+	}
+	
+	
+	public float getLoadFactor() {
+		
+		return (float)this.dbStore.mappingCount() / Configuration.MEMORY_STORAGE_SIZE;
+		
 	}
 }
