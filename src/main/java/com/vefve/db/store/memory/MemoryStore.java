@@ -1,5 +1,7 @@
 package com.vefve.db.store.memory;
 
+import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.vefve.db.Configuration;
@@ -44,14 +46,19 @@ public class MemoryStore<Key extends Comparable<Key>, Value> implements Store<Ke
 	
 	
 	public void remove(Key key) {
-		
-		synchronized(this) {
 			
-			// The case where the key is not present in the dbStore is already handled by remove method.
-			this.dbStore.remove(key);
+		// The case where the key is not present in the dbStore is already handled by remove method.
+		this.dbStore.remove(key);
 			
-		}
 	}
+	
+	
+	public void removeAll() {
+		
+		this.dbStore.clear();
+		
+	}
+	
 
 	public boolean containsKey(Key key) {
 
@@ -59,6 +66,11 @@ public class MemoryStore<Key extends Comparable<Key>, Value> implements Store<Ke
 
 	}
 
+	
+	public Iterator<Entry<Key, Value>> getIterator() {
+		return this.dbStore.entrySet().iterator();
+	}
+	
 	
 	/**
 	 * 
