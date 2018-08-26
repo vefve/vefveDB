@@ -197,7 +197,7 @@ public class DiskStore<Key extends Comparable<Key>, Value> implements Store<Key,
             
         	for (j = 0; j < h.m; j++) {
                
-        		if (less(key, h.children[j].key)) break;
+        		if (less(key, h.children[j].key) || eq(key, h.children[j].key)) break;
             
         	}
         
@@ -230,15 +230,23 @@ public class DiskStore<Key extends Comparable<Key>, Value> implements Store<Key,
         
         }
 
-        for (int i = h.m; i > j; i--) {
+        if (h.children[j] != null && eq(key, h.children[j].key)) {
+        	
+        	h.children[j] = t;
+        	
+        } else {
+        	
+            for (int i = h.m; i > j; i--) {
+                
+            	h.children[i] = h.children[i-1];
             
-        	h.children[i] = h.children[i-1];
-        
+            }
+            
+            h.children[j] = t;
+            
+            h.m++;
+            
         }
-        
-        h.children[j] = t;
-        
-        h.m++;
         
         if (h.m < M) {
         	
