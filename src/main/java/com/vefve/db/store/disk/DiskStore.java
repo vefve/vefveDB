@@ -1,321 +1,359 @@
 package com.vefve.db.store.disk;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.vefve.db.Configuration;
 import com.vefve.db.store.Store;
-
-public class DiskStore<Key extends Comparable<Key>, Value> implements Store<Key, Value>  {
-    // max children per B-tree node = M-1
-    // (must be even and greater than 2)
-    private static final int M = 4;
-
-    private Node root;       // root of the B-tree
-    
-    private int height;      // height of the B-tree
-    
-    private int n;           // number of key-value pairs in the B-tree
-
-    // helper B-tree node data type
-    private static final class Node {
-        
-    	private int m;                             // number of children
-    	
-        private Entry[] children = new Entry[M];   // the array of children
-
-        // create a node with k children
-        private Node(int k) {
-            
-        	m = k;
-        	
-        }
-        
-    }
-
-    // internal nodes: only use key and next
-    // external nodes: only use key and value
-    private static class Entry {
-        
-    	private Comparable key;
-    	
-        private final Object val;
-        
-        private Node next;     // helper field to iterate over array entries
-        
-        public Entry(Comparable key, Object val, Node next) {
-            
-        	this.key  = key;
-        	
-            this.val  = val;
-            
-            this.next = next;
-            
-        }
-        
-    }
-
-    /**
-     * Initializes an empty B-tree.
-     */
-    public DiskStore() {
-        
-    	root = new Node(0);
-    	
-    }
- 
-    /**
-     * Returns true if this symbol table is empty.
-     * @return {@code true} if this symbol table is empty; {@code false} otherwise
-     */
-    public boolean isEmpty() {
-        
-    	return size() == 0;
-    	
-    }
-
-    /**
-     * Returns the number of key-value pairs in this symbol table.
-     * @return the number of key-value pairs in this symbol table
-     */
-    public int size() {
-        
-    	return n;
-    	
-    }
-
-    /**
-     * Returns the height of this B-tree (for debugging).
-     *
-     * @return the height of this B-tree
-     */
-    public int height() {
-        
-    	return height;
-    	
-    }
+import com.vefve.db.store.memory.MemoryStore;
+import com.vefve.db.utils.Utils;
 
 
-    /**
-     * Returns the value associated with the given key.
-     *
-     * @param  key the key
-     * @return the value associated with the given key if the key is in the symbol table
-     *         and {@code null} if the key is not in the symbol table
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public Value get(Key key) {
-        
-    	if (key == null) {
-    		
-    		throw new IllegalArgumentException("argument to get() is null");
-    		
-    	}
-    	
-        return search(root, key, height);
-        
-    }
+/**
+ * DiskStore uses a B-Tree to store the Key-Value pairs on the disk.
+ * @author vefve
+ *
+ * @param <K>
+ * @param <V>
+ */
+public class DiskStore<K extends Serializable & Comparable<K>, V extends Serializable> implements Store<K, V> {
+	// max children per B-tree node = Branching Factor - 1
 
-    private Value search(Node x, Key key, int ht) {
-        
-    	Entry[] children = x.children;
+	private static final Logger logger = LogManager.getLogger(MemoryStore.class);
+	
+	/*
+	 * Root of the B-Tree. Stores the absolute path to the root node file.
+	 */
+	private String root; // root of the B-tree
+	
+	/*
+	 * Height of the B-Tree.
+	 */
+	private int height;
+	
+	/*
+	 * Number of Key-Value pairs in the B-Tree.
+	 */
+	private int n;
+	
+	private DiskUtils diskUtils;
 
-        // external node
-        if (ht == 0) {
-            
-        	for (int j = 0; j < x.m; j++) {
-                
-        		if (eq(key, children[j].key)) return (Value) children[j].val;
-        		
-            }
-        	
-        }
-
-        // internal node
-        else {
-            
-        	for (int j = 0; j < x.m; j++) {
-                
-        		if (j+1 == x.m || less(key, children[j+1].key))
-                    
-        			return search(children[j].next, key, ht-1);
-            
-        	}
-        
-        }
-        
-        return null;
-    
-    }
+	
+	/**
+	 * Initializes an empty B-tree.
+	 */
+	public DiskStore() {
+		diskUtils = new DiskUtils();
+		
+		root = diskUtils.writeNodeToDisk(new Node(0));
+		
+	}
 
 
-    /**
-     * Inserts the key-value pair into the symbol table, overwriting the old value
-     * with the new value if the key is already in the symbol table.
-     * If the value is {@code null}, this effectively deletes the key from the symbol table.
-     *
-     * @param  key the key
-     * @param  val the value
-     * @return 
-     * @throws IllegalArgumentException if {@code key} is {@code null}
-     */
-    public boolean put(Key key, Value val) {
-        
-    	if (key == null) {
-        	
-    		//TODO: log here
-    		return false;
-    		
-    	}
-        
-    	Node u = insert(root, key, val, height); 
-        
-    	n++;
-        
-    	if (u == null) 
-    		return true;
 
-        // need to split root
-        Node t = new Node(2);
-        
-        t.children[0] = new Entry(root.children[0].key, null, root);
-        
-        t.children[1] = new Entry(u.children[0].key, null, u);
-        
-        root = t;
-        
-        height++;
-        
-        return true;
-    
-    }
+	/**
+	 * Returns true if this symbol table is empty.
+	 * 
+	 * @return {@code true} if this symbol table is empty; {@code false} otherwise
+	 */
+	public boolean isEmpty() {
+		
+		return size() == 0;
+		
+	}
 
-    private Node insert(Node h, Key key, Value val, int ht) {
-        
-    	int j;
-        
-    	Entry t = new Entry(key, val, null);
+	/**
+	 * Returns the number of key-value pairs in this symbol table.
+	 * 
+	 * @return the number of key-value pairs in this symbol table
+	 */
+	public int size() {
+		
+		return n;
+		
+	}
 
-        // external node
-        if (ht == 0) {
-            
-        	for (j = 0; j < h.m; j++) {
-               
-        		if (less(key, h.children[j].key) || eq(key, h.children[j].key)) break;
-            
-        	}
-        
-        }
+	/**
+	 * Returns the height of this B-tree (for debugging).
+	 *
+	 * @return the height of this B-tree
+	 */
+	public int height() {
+		
+		return height;
+		
+	}
 
-        // internal node
-        else {
-            
-        	for (j = 0; j < h.m; j++) {
-                
-        		if ((j+1 == h.m) || less(key, h.children[j+1].key)) {
-                    
-        			Node u = insert(h.children[j++].next, key, val, ht-1);
-                    
-        			if (u == null) {
-        				
-        				return null;
-        				
-        			}
-        			
-                    t.key = u.children[0].key;
-                    
-                    t.next = u;
-                    
-                    break;
-                
-        		}
-            
-        	}
-        
-        }
+	/**
+	 * Returns the value associated with the given key.
+	 *
+	 * @param key
+	 *            the key
+	 * @return the value associated with the given key if the key is in the symbol
+	 *         table and {@code null} if the key is not in the symbol table
+	 * @throws IllegalArgumentException
+	 *             if {@code key} is {@code null}
+	 */
+	public V get(K key) {
+		
+		if (key == null) {
+			
+			logger.info("Key cannot be null.");
+			
+		}
+		
+		V v = search(root, key, height);
+		
+		return v;
+	}
 
-        if (h.children[j] != null && eq(key, h.children[j].key)) {
-        	
-        	h.children[j] = t;
-        	
-        } else {
-        	
-            for (int i = h.m; i > j; i--) {
-                
-            	h.children[i] = h.children[i-1];
-            
-            }
-            
-            h.children[j] = t;
-            
-            h.m++;
-            
-        }
-        
-        if (h.m < M) {
-        	
-        	return null;
-        
-        } else {
-        	
-        	return split(h);
-        
-        }
-    
-    }
+	@SuppressWarnings("unchecked")
+	private V search(String nodePath, K key, int height) {
+		
+		Node node = diskUtils.readNodeFromDisk(nodePath);
+		
+		Entry[] children = node.getChildren();
 
-    // split node in half
-    private Node split(Node h) {
-        
-    	Node t = new Node(M/2);
-        
-    	h.m = M/2;
-        for (int j = 0; j < M/2; j++) {
-            
-        	t.children[j] = h.children[M/2+j]; 
-        
-        }
-        
-        return t;    
-    
-    }
+		// External node
+		if (height == 0) {
+			
+			for (int j = 0; j < node.getChildrenCount(); j++) {
+				
+				if (Utils.eq(key, children[j].getKey())) {
+					
+					return (V) children[j].getVal();
+					
+				}
+				
+			}
+			
+		}
 
-    /**
-     * Returns a string representation of this B-tree (for debugging).
-     *
-     * @return a string representation of this B-tree.
-     */
-    public String toString() {
-       
-    	return toString(root, height, "") + "\n";
-    
-    }
+		// Internal node
+		else {
+			
+			for (int j = 0; j < node.getChildrenCount(); j++) {
+				
+				if (j + 1 == node.getChildrenCount() || Utils.less(key, children[j + 1].getKey())) {
+					
+					// TODO: See if we can remove reference for "node" here so that it can be
+					// garbage collected.
+					return search(children[j].getNext(), key, height - 1);
+					
+				}
+				
+			}
+			
+		}
+		
+		return null;
+		
+	}
 
-    private String toString(Node h, int ht, String indent) {
-        StringBuilder s = new StringBuilder();
-        Entry[] children = h.children;
+	/**
+	 * Inserts the key-value pair into the symbol table, overwriting the old value
+	 * with the new value if the key is already in the symbol table. If the value is
+	 * {@code null}, this effectively deletes the key from the symbol table.
+	 *
+	 * @param key
+	 *            the key
+	 * @param val
+	 *            the value
+	 * @return 
+	 * @throws IllegalArgumentException
+	 *             if {@code key} is {@code null}
+	 */
+	public boolean put(K key, V val) {
+		
+		if (key == null) {
+			
+			//TODO: Add logging.
+			return false;
+			
+		}
+		
+		Node _root = diskUtils.readNodeFromDisk(root);
+		
+		String u = insert(_root, key, val, height);
+		
+		n++;
+		
+		if (u == null) {
+			
+			return true;
+			
+		}
 
-        if (ht == 0) {
-            for (int j = 0; j < h.m; j++) {
-                s.append(indent + children[j].key + " " + children[j].val + "\n");
-            }
-        }
-        else {
-            for (int j = 0; j < h.m; j++) {
-                if (j > 0) s.append(indent + "(" + children[j].key + ")\n");
-                s.append(toString(children[j].next, ht-1, indent + "     "));
-            }
-        }
-        return s.toString();
-    }
+		/*
+		 * Need to split the root.
+		 */
+		Node newNode = new Node(2);
+		
+		newNode.getChildren()[0] = new Entry(_root.getChildren()[0].getKey(), null, root);
+		
+		newNode.getChildren()[1] = new Entry(diskUtils.readNodeFromDisk(u).getChildren()[0].getKey(), null, u);
+		
+		String newNodePath = diskUtils.writeNodeToDisk(newNode);
+		
+		root = newNodePath;
+		
+		height++;
+		
+		return true;
+		
+	}
 
+	
+	private String insert(Node root, K key, V value, int height) {
+		
+		int j;
+		
+		Entry newEntry = new Entry(key, value, null);
 
-    // comparison functions - make Comparable instead of Key to avoid casts
-    private boolean less(Comparable k1, Comparable k2) {
-        
-    	return k1.compareTo(k2) < 0;
-    
-    }
+		// External node
+		if (height == 0) {
+			
+			for (j = 0; j < root.getChildrenCount(); j++) {
+				
+				if (Utils.less(key, root.getChildren()[j].getKey()) || Utils.eq(key, root.getChildren()[j].getKey())) {
+					
+					break;
+					
+				}
+				
+			}
+			
+		}
 
-    private boolean eq(Comparable k1, Comparable k2) {
-        
-    	return k1.compareTo(k2) == 0;
-    
-    }
+		// Internal node
+		else {
+			
+			for (j = 0; j < root.getChildrenCount(); j++) {
+				
+				if ((j + 1 == root.getChildrenCount()) || Utils.less(key, root.getChildren()[j + 1].getKey())) {
+					
+					String u = insert(diskUtils.readNodeFromDisk(root.getChildren()[j++].getNext()), key, value, height - 1);
+					
+					if (u == null) {
+						
+						return null;
+						
+					}
+					
+					newEntry.setKey(diskUtils.readNodeFromDisk(u).getChildren()[0].getKey());
+					
+					newEntry.setNext(u);
+					
+					break;
+					
+				}
+				
+			}
+			
+		}
+
+		if (root.getChildren()[j] != null && Utils.eq(key, root.getChildren()[j].getKey())) {
+			
+			root.getChildren()[j] = newEntry;
+			
+		} else {
+			
+			for (int i = root.getChildrenCount(); i > j; i--)
+				
+				root.getChildren()[i] = root.getChildren()[i - 1];
+			
+			root.getChildren()[j] = newEntry;
+			
+			root.setChildrenCount(root.getChildrenCount() + 1);
+			
+		}
+		if (root.getChildrenCount() < Configuration.BRANCHING_FACTOR) {
+			
+			diskUtils.writeNodeToDisk(root);
+			
+			return null;
+			
+		} else {
+			
+			return split(root);
+			
+		}
+		
+	}
+
+	
+	/*
+	 * Split the node in half.
+	 */
+	private String split(Node root) {
+		
+		Node newNode = new Node(Configuration.BRANCHING_FACTOR / 2);
+		
+		root.setChildrenCount(Configuration.BRANCHING_FACTOR / 2);
+		
+		for (int j = 0; j < Configuration.BRANCHING_FACTOR / 2; j++) {
+			
+			newNode.getChildren()[j] = root.getChildren()[Configuration.BRANCHING_FACTOR / 2 + j];
+			
+		}
+		
+		diskUtils.writeNodeToDisk(root);
+		
+		return diskUtils.writeNodeToDisk(newNode);
+		
+	}
+	
+	
+	/**
+	 * Returns a string representation of this B-tree (for debugging).
+	 *
+	 * @return a string representation of this B-tree.
+	 */
+	public String toString() {
+		
+		return toString(root, height, "") + "\n";
+		
+	}
+
+	
+	private String toString(String rootPath, int ht, String indent) {
+		
+		Node h = diskUtils.readNodeFromDisk(rootPath);
+		
+		StringBuilder s = new StringBuilder();
+		
+		Entry[] children = h.getChildren();
+
+		if (ht == 0) {
+			
+			for (int j = 0; j < h.getChildrenCount(); j++) {
+				
+				s.append(indent + children[j].getKey() + " " + children[j].getVal() + "\n");
+				
+			}
+			
+		} else {
+			
+			for (int j = 0; j < h.getChildrenCount(); j++) {
+				
+				if (j > 0)
+					
+					s.append(indent + "(" + children[j].getKey() + ")\n");
+				
+				s.append(toString(children[j].getNext(), ht - 1, indent + "     "));
+				
+			}
+			
+		}
+		
+		return s.toString();
+		
+	}
+
 }
+

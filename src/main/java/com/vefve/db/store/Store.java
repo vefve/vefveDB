@@ -1,10 +1,12 @@
 package com.vefve.db.store;
 
+import java.io.Serializable;
+
 /**
  * @author vefve
  *
  */
-public interface Store<Key extends Comparable<Key>, Value> {
+public interface Store<Key extends Serializable & Comparable<Key>, Value extends Serializable> {
 
 	/**
 	 * 

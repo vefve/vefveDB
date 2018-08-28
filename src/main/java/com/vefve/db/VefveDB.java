@@ -1,18 +1,21 @@
 package com.vefve.db;
 
+import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.vefve.db.exceptions.CreateNodeException;
+import com.vefve.db.store.MemoryManager;
 import com.vefve.db.store.disk.DiskStore;
 import com.vefve.db.store.memory.MemoryStore;
 
-public class VefveDB<K extends Comparable<K>, V> {
+public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializable> {
 
 	private MemoryStore<K, V> memoryStore;
 	
 	private DiskStore<K, V> diskStore;
 	
 	
-	public VefveDB() {
+	public VefveDB() throws CreateNodeException {
 		
 		this.memoryStore = new MemoryStore<K, V>(new ConcurrentHashMap<K, V>());
 		
@@ -30,7 +33,7 @@ public class VefveDB<K extends Comparable<K>, V> {
 		V returnValue = this.memoryStore.get(key);
 		
 		if (Configuration.USE_PERSISTENT_STORAGE && returnValue == null) {
-			
+
 			returnValue = this.diskStore.get(key);
 		}
 		
@@ -38,7 +41,7 @@ public class VefveDB<K extends Comparable<K>, V> {
 	}
 
 	
-	public void put(K key, V value) {
+	public void put(K key, V value) throws CreateNodeException {
 
 		if (key == null || value == null) {
 			
@@ -50,9 +53,11 @@ public class VefveDB<K extends Comparable<K>, V> {
 			
 			synchronized(this) {
 				
-				if (this.memoryStore.getLoadFactor() >= Configuration.LOAD_FACTOR_THRESHOLD) {
+				if (Configuration.USE_PERSISTENT_STORAGE && this.memoryStore.getLoadFactor() >= Configuration.LOAD_FACTOR_THRESHOLD) {
 					
-					// TODO: Trigger memory manager
+					MemoryManager<K, V> memoryManager = new MemoryManager<K, V>(memoryStore, diskStore);
+					
+					memoryManager.backupToDisk();
 
 				} else {
 				
@@ -64,9 +69,17 @@ public class VefveDB<K extends Comparable<K>, V> {
 				
 			}
 			
-			//TODO: Wait for memory manager to finish
-			
 		}
+		
+	}
+	
+	
+	public String toString() {
+		String stringRepresentation  = "Memory Store: " + this.memoryStore.toString() + "\n";
+		if (Configuration.USE_PERSISTENT_STORAGE) {
+			stringRepresentation += "Disk Store: " + this.diskStore.toString();
+		}
+		return stringRepresentation;
 		
 	}
 
