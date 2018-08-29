@@ -55,5 +55,12 @@ public class VefveDBTest {
         }
         
 	}
+
 	
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	void testInitializationError() throws CreateNodeException, IllegalArgumentException {
+		
+		VefveDB<String, String> vefveDB = new VefveDB<String, String>(true, null, 5L, 0.7f, 4);
+		
+	}
 }

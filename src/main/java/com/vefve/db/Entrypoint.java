@@ -3,8 +3,6 @@
  */
 package com.vefve.db;
 
-import java.io.IOException;
-
 import com.vefve.db.exceptions.CreateNodeException;
 import com.vefve.db.exceptions.ReadNodeException;
 

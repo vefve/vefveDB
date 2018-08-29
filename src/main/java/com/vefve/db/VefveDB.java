@@ -135,6 +135,12 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 		
 		if (this.usePersistentStorage) {
 			
+			if (persistentStoragePath == null || branchingFactor <= 2 || branchingFactor % 2 != 0) {
+				
+				throw new IllegalArgumentException();
+				
+			}
+			
 			this.diskStoreLock = new ReentrantReadWriteLock();
 			
 			this.diskStore = new DiskStore<K, V>(this.diskStoreLock, this.branchingFactor, this.persistentStoragePath);
