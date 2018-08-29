@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.vefve.db.exceptions.CreateNodeException;
+import com.vefve.db.exceptions.ReadNodeException;
 
 /**
  * Contains utilities for disk operations.
@@ -39,10 +40,14 @@ public class DiskUtils {
 	
 	/**
 	 * Reads and deserializes a node specified by the {@code filePath}.
+	 * 
 	 * @param filePath File path of the node.
+	 * 
 	 * @return Deserialized node.
+	 * 
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
-	public Node readNodeFromDisk(String filePath) {
+	public Node readNodeFromDisk(String filePath) throws ReadNodeException {
 		
 		if (filePath == null) {
 			
@@ -66,24 +71,28 @@ public class DiskUtils {
 			
 		} catch (JsonParseException e) {
 
-			e.printStackTrace();
+			throw new ReadNodeException(filePath);
 			
 		} catch (JsonMappingException e) {
 
-			e.printStackTrace();
+			throw new ReadNodeException(filePath);
 			
 		} catch (IOException e) {
 
-			e.printStackTrace();
+			throw new ReadNodeException(filePath);
+			
 		}
-		return null;
+		
 	}
 
 	
 	/**
 	 * Serializes and writes a node to the disk
+	 * 
 	 * @param node Node to save.
+	 * 
 	 * @return filePath File path of the node saved.
+	 * 
 	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
 	 */
 	public String writeNodeToDisk(Node node) throws CreateNodeException {

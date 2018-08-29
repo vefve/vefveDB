@@ -27,8 +27,9 @@ vefveDB.get("www.cs.princeton.edu");
 - Currently data is stored in the B-Tree nodes itself.
 - The whole tree is locked when the data from Memory Store is moved to Disk Store.
 
-#### Running Unit Tests
+#### Running Unit Tests and Code Coverage
 - Run `mvn test`
+- Run `mvn cobertura:cobertura`
 
 #### Store Implementations
 - The `MemoryStore` implementation uses a ConcurrentHashMap.

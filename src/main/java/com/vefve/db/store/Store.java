@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import com.vefve.db.exceptions.CreateNodeException;
+import com.vefve.db.exceptions.ReadNodeException;
 
 /**
  * Storage interface for VefveDB.
@@ -20,8 +21,9 @@ public interface Store<Key extends Serializable & Comparable<Key>, Value extends
 	 * 
 	 * @param key
 	 * @return Value corresponding to the given key, else null.
+	 * @throws ReadNodeException 
 	 */
-	public Value get(Key key);
+	public Value get(Key key) throws ReadNodeException;
 
 	
 	/**
@@ -36,6 +38,7 @@ public interface Store<Key extends Serializable & Comparable<Key>, Value extends
 	 * @return {@code true} if successfully inserted, {@code false} if not.
 	 * 
 	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
-	public boolean put(Key key, Value value) throws CreateNodeException;
+	public boolean put(Key key, Value value) throws CreateNodeException, ReadNodeException;
 }

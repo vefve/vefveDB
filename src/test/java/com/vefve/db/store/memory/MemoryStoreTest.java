@@ -4,13 +4,12 @@
 package com.vefve.db.store.memory;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.vefve.db.exceptions.CreateNodeException;
-import com.vefve.db.store.disk.DiskStore;
 
 /**
  * Tests for MemoryStore.
@@ -19,13 +18,19 @@ import com.vefve.db.store.disk.DiskStore;
  *
  */
 public class MemoryStoreTest {
+	
+	private MemoryStore<String, String> memoryStore;
 
-	@Test
-	void testAddRemoveFull() {
+	@BeforeTest
+	void prepare() {
 		
 		ConcurrentHashMap<String, String> concurrentMap = new ConcurrentHashMap<String, String>();
 		
-		MemoryStore<String, String> memoryStore = new MemoryStore<String, String>(concurrentMap, 5);
+		this.memoryStore = new MemoryStore<String, String>(concurrentMap, 5);
+	}
+	
+	@Test
+	void testAddRemoveFull() {
 		
 		memoryStore.put("www.cs.princeton.edu", "128.112.136.11");
 		
@@ -57,15 +62,33 @@ public class MemoryStoreTest {
 	@Test
 	void testDuplicate() throws CreateNodeException {
 		
-		ConcurrentHashMap<String, String> concurrentMap = new ConcurrentHashMap<String, String>();
-		
-		MemoryStore<String, String> memoryStore = new MemoryStore<String, String>(concurrentMap, 5);
-		
 		memoryStore.put("www.cs.princeton.edu", "128.112.136.12");
 		
 		memoryStore.put("www.cs.princeton.edu", "128.112.136.11");
 		
 		Assert.assertEquals("128.112.136.11", memoryStore.get("www.cs.princeton.edu"));
+		
+	}
+	
+	
+	@Test
+	void testContainsKey() {
+		
+		memoryStore.put("www.cs.princeton.edu", "128.112.136.12");
+		
+		Assert.assertEquals(true, memoryStore.containsKey("www.cs.princeton.edu"));
+		
+	}
+	
+	
+	@Test
+	void testRemove() {
+		
+		memoryStore.put("www.cs.princeton.edu", "128.112.136.12");
+		
+		memoryStore.remove("www.cs.princeton.edu");
+		
+		Assert.assertEquals(false, memoryStore.containsKey("www.cs.princeton.edu"));
 		
 	}
 	

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.vefve.db;
 
 import java.util.ArrayList;
@@ -10,6 +7,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.vefve.db.exceptions.CreateNodeException;
+import com.vefve.db.exceptions.ReadNodeException;
 
 /**
  * @author vefve
@@ -18,7 +16,7 @@ import com.vefve.db.exceptions.CreateNodeException;
 public class VefveDBTest {
 
 	@Test(threadPoolSize = 3, invocationCount = 3,  timeOut = 10000)
-	void testMultiThreadedLoad() throws CreateNodeException {
+	void testMultiThreadedLoad() throws CreateNodeException, ReadNodeException {
 		
 		VefveDB<String, String> vefveDB = new VefveDB<String, String>();
 		

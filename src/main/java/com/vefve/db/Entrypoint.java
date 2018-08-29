@@ -6,6 +6,7 @@ package com.vefve.db;
 import java.io.IOException;
 
 import com.vefve.db.exceptions.CreateNodeException;
+import com.vefve.db.exceptions.ReadNodeException;
 
 /**
  * Entrypoint to debug the DB.
@@ -17,9 +18,10 @@ public class Entrypoint {
 
 	/**
 	 * @param args
-	 * @throws CreateNodeException 
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
-	public static void main(String[] args) throws CreateNodeException {
+	public static void main(String[] args) throws CreateNodeException, ReadNodeException {
 		
 		VefveDB<String, String> vefveDB = new VefveDB<String, String>();
 

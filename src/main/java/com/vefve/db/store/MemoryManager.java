@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import com.vefve.db.exceptions.CreateNodeException;
+import com.vefve.db.exceptions.ReadNodeException;
 import com.vefve.db.store.disk.DiskStore;
 import com.vefve.db.store.memory.MemoryStore;
 
@@ -36,8 +37,9 @@ public class MemoryManager<K extends Serializable & Comparable<K>, V extends Ser
 	 * empties the {@code memoryStore}
 	 * 
 	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
-	public void backupToDisk() throws CreateNodeException {
+	public void backupToDisk() throws CreateNodeException, ReadNodeException {
 
 		synchronized (this) {
 			

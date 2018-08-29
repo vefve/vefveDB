@@ -14,6 +14,12 @@ public class Utils {
 	 */
 	public static boolean less(Comparable k1, Comparable k2) {
 
+		if (k1 == null || k2 == null) {
+
+			return false;
+
+		}
+		
 		return k1.compareTo(k2) < 0;
 
 	}

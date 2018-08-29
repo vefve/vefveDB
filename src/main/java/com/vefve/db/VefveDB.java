@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.vefve.db.exceptions.CreateNodeException;
+import com.vefve.db.exceptions.ReadNodeException;
 import com.vefve.db.store.MemoryManager;
 import com.vefve.db.store.disk.DiskStore;
 import com.vefve.db.store.memory.MemoryStore;
@@ -106,15 +107,15 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 	/**
 	 * Constructor to initialize {@code VefveDB}
 	 * 
-	 * @param usePersistentStorage boolean Whether to use persistent storage or not.
+	 * @param usePersistentStorage {@code boolean} Whether to use persistent storage or not.
 	 * 
-	 * @param persistentStoragePath String Location to store the data in.
+	 * @param persistentStoragePath {@code String} Location to store the data in.
 	 * 
-	 * @param memoryStorageSize long Max size of the Memory store.
+	 * @param memoryStorageSize {@code long} Max size of the Memory store.
 	 * 
-	 * @param loadFactorThreshold float Ranges between 0 and 1. The load factor after which the memory store is moved to disk store.
+	 * @param loadFactorThreshold {@code float} Ranges between 0 and 1. The load factor after which the memory store is moved to disk store.
 	 * 
-	 * @param branchingFactor int Constraint: Must be even and greater than 2. Max children per B-tree node = {@code branchingFactor - 1 }
+	 * @param branchingFactor {@code int} Constraint: Must be even and greater than 2. Max children per B-tree node = {@code branchingFactor - 1 }
 	 * 
 	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
 	 */
@@ -145,11 +146,14 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 	
 	/**
 	 * Returns the value corresponding to the given key, if present in the DB Store.
+	 * 
 	 * @param key Key to search in the DB.
 	 * 
 	 * @return Returns the value corresponding to the given key, if present in the DB Store.
+	 * 
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
-	public V get(K key) {
+	public V get(K key) throws ReadNodeException {
 		
 		V returnValue = this.memoryStore.get(key);
 		
@@ -166,10 +170,14 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 	 * Insert a Key-Value pair in the DB Store.
 	 * 
 	 * @param key Key to be inserted.
+	 * 
 	 * @param value Value to be inserted.
+	 * 
 	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 * 
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
-	public void put(K key, V value) throws CreateNodeException {
+	public void put(K key, V value) throws CreateNodeException, ReadNodeException {
 
 		if (key == null || value == null) {
 			

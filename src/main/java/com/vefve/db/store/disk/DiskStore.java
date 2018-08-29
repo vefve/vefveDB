@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.vefve.db.exceptions.CreateNodeException;
+import com.vefve.db.exceptions.ReadNodeException;
 import com.vefve.db.store.Store;
 import com.vefve.db.store.memory.MemoryStore;
 import com.vefve.db.utils.Utils;
@@ -41,7 +42,7 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	/*
 	 * Number of Key-Value pairs in the B-Tree.
 	 */
-	private int n;
+	private long n;
 	
 	private DiskUtils diskUtils;
 	
@@ -68,9 +69,9 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 
 
 	/**
-	 * Returns true if this symbol table is empty.
+	 * Returns true if the dbStore is empty.
 	 * 
-	 * @return {@code true} if this symbol table is empty; {@code false} otherwise
+	 * @return {@code true} if the dbStore is empty; {@code false} otherwise
 	 */
 	public boolean isEmpty() {
 		
@@ -79,11 +80,11 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	}
 
 	/**
-	 * Returns the number of key-value pairs in this symbol table.
+	 * Returns the number of key-value pairs in the dbStore.
 	 * 
-	 * @return the number of key-value pairs in this symbol table
+	 * @return The number of key-value pairs in the dbStore.
 	 */
-	public int size() {
+	public long size() {
 		
 		return n;
 		
@@ -105,14 +106,19 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 *
 	 * @param key
 	 *            the key
+	 *            
 	 * @return the value associated with the given key if the key is in the dbStore
 	 *         and {@code null} if the key is not in the dbStore
+	 *         
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
-	public V get(K key) {
+	public V get(K key) throws ReadNodeException {
 		
 		if (key == null) {
 			
 			logger.info("Key cannot be null.");
+			
+			return null;
 			
 		}
 		
@@ -130,12 +136,17 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 * Search a node in the given subtree.
 	 * 
 	 * @param nodePath File path of the root of the subtree to search in.
+	 * 
 	 * @param key Key to search in the subtree.
+	 * 
 	 * @param height Height of the subtree.
+	 * 
 	 * @return
+	 * 
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
 	@SuppressWarnings("unchecked")
-	private V search(String nodePath, K key, int height) {
+	private V search(String nodePath, K key, int height) throws ReadNodeException {
 		
 		Node node = diskUtils.readNodeFromDisk(nodePath);
 		
@@ -184,12 +195,17 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 *
 	 * @param key
 	 *            the key
+	 *            
 	 * @param val
 	 *            the value
+	 *            
 	 * @return 
+	 * 
 	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 * 
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
-	public boolean put(K key, V val) throws CreateNodeException {
+	public boolean put(K key, V val) throws CreateNodeException, ReadNodeException {
 		
 		if (key == null) {
 			
@@ -240,13 +256,20 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 * Inserts the Key-Value pair in the given subtree.
 	 * 
 	 * @param root Root of the subtree to insert the Key-Value pair in.
+	 * 
 	 * @param key Key to be inserted.
+	 * 
 	 * @param value Value to be inserted.
+	 * 
 	 * @param height Height of the subtree.
+	 * 
 	 * @return
+	 * 
 	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 * 
+	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
-	private String insert(Node root, K key, V value, int height) throws CreateNodeException {
+	private String insert(Node root, K key, V value, int height) throws CreateNodeException, ReadNodeException {
 		
 		int j;
 		
@@ -353,12 +376,22 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 */
 	public String toString() {
 		
-		return toString(root, height, "") + "\n";
+		try {
+			
+			return toString(root, height, "") + "\n";
+			
+		} catch (ReadNodeException e) {
+			
+			logger.error("Error in reading data from disk.");
+			
+			return null;
+			
+		}
 		
 	}
 
 	
-	private String toString(String rootPath, int ht, String indent) {
+	private String toString(String rootPath, int ht, String indent) throws ReadNodeException {
 		
 		Node h = diskUtils.readNodeFromDisk(rootPath);
 		

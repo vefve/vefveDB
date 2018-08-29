@@ -143,6 +143,19 @@ public class MemoryStore<K extends Serializable & Comparable<K>, V extends Seria
 		return true;
 
 	}
+	
+	
+	/**
+	 * Returns the number of mappings. The value returned is an estimate; the actual
+	 * count may differ if there are concurrent insertions or removals.
+	 * 
+	 * @return The number of mappings
+	 */
+	public long size() {
+		
+		return this.dbStore.mappingCount();
+		
+	}
 
 	
 	/**
@@ -168,4 +181,5 @@ public class MemoryStore<K extends Serializable & Comparable<K>, V extends Seria
 		return this.dbStore.toString();
 		
 	}
+	
 }

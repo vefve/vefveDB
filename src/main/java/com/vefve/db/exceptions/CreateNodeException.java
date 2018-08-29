@@ -1,5 +1,5 @@
 /**
- * 
+ * Exception for vefveDB.
  */
 package com.vefve.db.exceptions;
 
@@ -17,32 +17,45 @@ import org.apache.logging.log4j.Logger;
 public class CreateNodeException extends IOException {
 
 	private static final Logger logger = LogManager.getLogger(CreateNodeException.class);
-	
+
 	private final String path;
 
-    public CreateNodeException(String path) {
-        this(path, null, null);
-    }
+	public CreateNodeException(String path) {
+		
+		this(path, null, null);
+		
+	}
+	
 
-    public CreateNodeException(String path,
-                            String msg) {
-        this(path, msg, null);
-    }
+	public CreateNodeException(String path, String msg) {
+		
+		this(path, msg, null);
+		
+	}
+	
 
-    public CreateNodeException(String path,
-                            Throwable cause) {
-        this(path, null, cause);
-    }
+	public CreateNodeException(String path, Throwable cause) {
+		
+		this(path, null, cause);
+		
+	}
+	
 
-    public CreateNodeException(String path,
-                            String msg,
-                            Throwable cause) {
-        super(msg, cause);
-        this.path = path;
-        logger.error("Cannot create new node at path: " + this.path);
-    }
+	public CreateNodeException(String path, String msg, Throwable cause) {
+		
+		super(msg, cause);
+		
+		this.path = path;
+		
+		logger.error("Cannot create new node at path: " + this.path);
+		
+	}
+	
 
-    public String getPath() {
-        return path;
-    }
+	public String getPath() {
+		
+		return path;
+		
+	}
+	
 }
