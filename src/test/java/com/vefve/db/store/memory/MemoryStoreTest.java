@@ -25,7 +25,7 @@ public class MemoryStoreTest {
 		
 		ConcurrentHashMap<String, String> concurrentMap = new ConcurrentHashMap<String, String>();
 		
-		MemoryStore<String, String> memoryStore = new MemoryStore<String, String>(concurrentMap);
+		MemoryStore<String, String> memoryStore = new MemoryStore<String, String>(concurrentMap, 5);
 		
 		memoryStore.put("www.cs.princeton.edu", "128.112.136.11");
 		
@@ -59,7 +59,7 @@ public class MemoryStoreTest {
 		
 		ConcurrentHashMap<String, String> concurrentMap = new ConcurrentHashMap<String, String>();
 		
-		MemoryStore<String, String> memoryStore = new MemoryStore<String, String>(concurrentMap);
+		MemoryStore<String, String> memoryStore = new MemoryStore<String, String>(concurrentMap, 5);
 		
 		memoryStore.put("www.cs.princeton.edu", "128.112.136.12");
 		

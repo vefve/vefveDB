@@ -7,7 +7,6 @@ import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.vefve.db.Configuration;
 
 /**
  * Node structure of the B-Tree.
@@ -22,7 +21,7 @@ public final class Node implements Serializable {
 	
 	private int childrenCount;
 	
-	private Entry[] children = new Entry[Configuration.BRANCHING_FACTOR]; // the array of children
+	private Entry[] children;
 	
 	private String filePath;
 
@@ -30,12 +29,14 @@ public final class Node implements Serializable {
 	/*
 	 * Create a node with k children
 	 */
-	public Node(int k) {
+	public Node(int k, int branchingFactor) {
 		
 		childrenCount = k;
+		
+		children = new Entry[branchingFactor];
+		//Debug
+//		children[0] = new Entry(null, null, null);
 
-		// Debug
-		children[0] = new Entry(null, null, null);
 	}
 
 	

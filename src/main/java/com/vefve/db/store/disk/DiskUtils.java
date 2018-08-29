@@ -17,7 +17,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.vefve.db.Configuration;
 import com.vefve.db.exceptions.CreateNodeException;
 
 /**
@@ -27,8 +26,16 @@ import com.vefve.db.exceptions.CreateNodeException;
  */
 public class DiskUtils {
 	
+	private String persistentStoragePath;
+	
 	private static final Logger logger = LogManager.getLogger(DiskUtils.class);
 
+	
+	public DiskUtils(String persistentStoragePath) {
+		
+		this.persistentStoragePath = persistentStoragePath;
+		
+	}
 	
 	/**
 	 * Reads and deserializes a node specified by the {@code filePath}.
@@ -92,7 +99,7 @@ public class DiskUtils {
 			String rootUUID = UUID.randomUUID().toString();
 			
 			try {
-				File rootFile = new File(Configuration.PERSISTANT_STORAGE_PATH + rootUUID);
+				File rootFile = new File(this.persistentStoragePath + rootUUID);
 				
 				rootFile.createNewFile();
 				
@@ -102,7 +109,7 @@ public class DiskUtils {
 				
 			} catch (IOException e) {
 				
-				throw new CreateNodeException(Configuration.PERSISTANT_STORAGE_PATH + rootUUID);
+				throw new CreateNodeException(this.persistentStoragePath + rootUUID);
 			}
 			
 		}

@@ -9,7 +9,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.vefve.db.Configuration;
 import com.vefve.db.exceptions.CreateNodeException;
 import com.vefve.db.store.Store;
 import com.vefve.db.store.memory.MemoryStore;
@@ -47,6 +46,8 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	private DiskUtils diskUtils;
 	
 	private ReentrantReadWriteLock lock;
+	
+	private int branchingFactor;
 
 	
 	/**
@@ -54,10 +55,12 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 * 
 	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
 	 */
-	public DiskStore(ReentrantReadWriteLock lock) throws CreateNodeException {
-		this.diskUtils = new DiskUtils();
+	public DiskStore(ReentrantReadWriteLock lock, int branchingFactor, String persistentStoragePath) throws CreateNodeException {
+		this.branchingFactor = branchingFactor;
 		
-		this.root = diskUtils.writeNodeToDisk(new Node(0));
+		this.diskUtils = new DiskUtils(persistentStoragePath);
+		
+		this.root = diskUtils.writeNodeToDisk(new Node(0, this.branchingFactor));
 		
 		this.lock = lock;
 		
@@ -215,7 +218,7 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 		/*
 		 * Need to split the root.
 		 */
-		Node newNode = new Node(2);
+		Node newNode = new Node(2, this.branchingFactor);
 		
 		newNode.getChildren()[0] = new Entry(_root.getChildren()[0].getKey(), null, root);
 		
@@ -306,7 +309,7 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 			root.setChildrenCount(root.getChildrenCount() + 1);
 			
 		}
-		if (root.getChildrenCount() < Configuration.BRANCHING_FACTOR) {
+		if (root.getChildrenCount() < this.branchingFactor) {
 			
 			diskUtils.writeNodeToDisk(root);
 			
@@ -326,13 +329,13 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 */
 	private String split(Node root) throws CreateNodeException {
 		
-		Node newNode = new Node(Configuration.BRANCHING_FACTOR / 2);
+		Node newNode = new Node(this.branchingFactor / 2, this.branchingFactor);
 		
-		root.setChildrenCount(Configuration.BRANCHING_FACTOR / 2);
+		root.setChildrenCount(this.branchingFactor / 2);
 		
-		for (int j = 0; j < Configuration.BRANCHING_FACTOR / 2; j++) {
+		for (int j = 0; j < this.branchingFactor / 2; j++) {
 			
-			newNode.getChildren()[j] = root.getChildren()[Configuration.BRANCHING_FACTOR / 2 + j];
+			newNode.getChildren()[j] = root.getChildren()[this.branchingFactor / 2 + j];
 			
 		}
 		

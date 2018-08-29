@@ -11,12 +11,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.vefve.db.Configuration;
 import com.vefve.db.store.Store;
 
 public class MemoryStore<K extends Serializable & Comparable<K>, V extends Serializable> implements Store<K, V> {
 
 	private ConcurrentHashMap<K, V> dbStore;
+	
+	private long memoryStorageSize;
 	
 	private static final Logger logger = LogManager.getLogger(MemoryStore.class);
 	
@@ -26,9 +27,11 @@ public class MemoryStore<K extends Serializable & Comparable<K>, V extends Seria
 	 * 
 	 * @param dbStore Used to initialize the MemoryStore.
 	 */
-	public MemoryStore(ConcurrentHashMap<K, V> dbStore) {
+	public MemoryStore(ConcurrentHashMap<K, V> dbStore, long memoryStorageSize) {
 
 		this.dbStore = dbStore;
+		
+		this.memoryStorageSize = memoryStorageSize;
 
 	}
 
@@ -131,7 +134,7 @@ public class MemoryStore<K extends Serializable & Comparable<K>, V extends Seria
 	 */
 	public boolean isFull() {
 
-		if (this.dbStore.mappingCount() < Configuration.MEMORY_STORAGE_SIZE) {
+		if (this.dbStore.mappingCount() < this.memoryStorageSize) {
 
 			return false;
 
@@ -149,7 +152,7 @@ public class MemoryStore<K extends Serializable & Comparable<K>, V extends Seria
 	 */
 	public float getLoadFactor() {
 
-		return (float) this.dbStore.mappingCount() / Configuration.MEMORY_STORAGE_SIZE;
+		return (float) this.dbStore.mappingCount() / this.memoryStorageSize;
 
 	}
 	

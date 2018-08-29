@@ -14,7 +14,7 @@ class DiskStoreTest {
 
 		ReentrantReadWriteLock diskStoreLock = new ReentrantReadWriteLock();
 		
-		DiskStore<String, String> diskStore = new DiskStore<String, String>(diskStoreLock);
+		DiskStore<String, String> diskStore = new DiskStore<String, String>(diskStoreLock, 4, "/tmp/data/");
 		
 		diskStore.put("www.cs.princeton.edu", "128.112.136.11");
 		
@@ -48,7 +48,7 @@ class DiskStoreTest {
 
 		ReentrantReadWriteLock diskStoreLock = new ReentrantReadWriteLock();
 		
-		DiskStore<String, String> diskStore = new DiskStore<String, String>(diskStoreLock);
+		DiskStore<String, String> diskStore = new DiskStore<String, String>(diskStoreLock, 4, "/tmp/data/");
 		
 		diskStore.put("www.cs.princeton.edu", "128.112.136.12");
 		

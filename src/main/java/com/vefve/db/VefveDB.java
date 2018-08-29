@@ -28,19 +28,118 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 	
 	private ReentrantReadWriteLock diskStoreLock;
 	
+	public boolean usePersistentStorage;
 	
+	public String persistentStoragePath;
+	
+	public long memoryStorageSize;
+	
+	public float loadFactorThreshold;
+	
+	public int branchingFactor; 
+	
+	
+	/**
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 */
 	public VefveDB() throws CreateNodeException {
 		
-		this.memoryStore = new MemoryStore<K, V>(new ConcurrentHashMap<K, V>());
+		this(true, "/tmp/data/", 5L, 0.7f, 4);
 		
-		if (Configuration.USE_PERSISTENT_STORAGE) {
+	}
+	
+	
+	/**
+	 * Constructor to initialize {@code VefveDB}
+	 * 
+	 * @param usePersistentStorage boolean Whether to use persistent storage or not.
+	 * 
+	 * @param persistentStoragePath String Location to store the data in.
+	 * 
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 */
+	public VefveDB(boolean usePersistentStorage, String persistentStoragePath) throws CreateNodeException {
 		
+		this(usePersistentStorage, persistentStoragePath, 5L, 0.7f, 4);
+		
+	}
+	
+	
+	/**
+	 * Constructor to initialize {@code VefveDB}
+	 * 
+	 * @param usePersistentStorage boolean Whether to use persistent storage or not.
+	 * 
+	 * @param persistentStoragePath String Location to store the data in.
+	 * 
+	 * @param memoryStorageSize long Max size of the Memory store.
+	 * 
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 */
+	public VefveDB(boolean usePersistentStorage, String persistentStoragePath, long memoryStorageSize) throws CreateNodeException {
+		
+		this(usePersistentStorage, persistentStoragePath, memoryStorageSize, 0.7f, 4);
+		
+	}
+	
+	
+	/**
+	 * Constructor to initialize {@code VefveDB}
+	 * 
+	 * @param usePersistentStorage boolean Whether to use persistent storage or not.
+	 * 
+	 * @param persistentStoragePath String Location to store the data in.
+	 * 
+	 * @param memoryStorageSize long Max size of the Memory store.
+	 * 
+	 * @param loadFactorThreshold float Ranges between 0 and 1. The load factor after which the memory store is moved to disk store.
+	 * 
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 */
+	public VefveDB(boolean usePersistentStorage, String persistentStoragePath, long memoryStorageSize, float loadFactorThreshold) throws CreateNodeException {
+		
+		this(usePersistentStorage, persistentStoragePath, memoryStorageSize, loadFactorThreshold, 4);
+	
+	}
+	
+	
+	/**
+	 * Constructor to initialize {@code VefveDB}
+	 * 
+	 * @param usePersistentStorage boolean Whether to use persistent storage or not.
+	 * 
+	 * @param persistentStoragePath String Location to store the data in.
+	 * 
+	 * @param memoryStorageSize long Max size of the Memory store.
+	 * 
+	 * @param loadFactorThreshold float Ranges between 0 and 1. The load factor after which the memory store is moved to disk store.
+	 * 
+	 * @param branchingFactor int Constraint: Must be even and greater than 2. Max children per B-tree node = {@code branchingFactor - 1 }
+	 * 
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 */
+	public VefveDB(boolean usePersistentStorage, String persistentStoragePath, long memoryStorageSize, float loadFactorThreshold, int branchingFactor) throws CreateNodeException {
+		
+		this.usePersistentStorage = usePersistentStorage;
+		
+		this.persistentStoragePath = persistentStoragePath;
+		
+		this.memoryStorageSize = memoryStorageSize;
+		
+		this.loadFactorThreshold = loadFactorThreshold;
+		
+		this.branchingFactor = branchingFactor;
+		
+		this.memoryStore = new MemoryStore<K, V>(new ConcurrentHashMap<K, V>(), this.memoryStorageSize);
+		
+		if (this.usePersistentStorage) {
+			
 			this.diskStoreLock = new ReentrantReadWriteLock();
 			
-			this.diskStore = new DiskStore<K, V>(this.diskStoreLock);
-		
+			this.diskStore = new DiskStore<K, V>(this.diskStoreLock, this.branchingFactor, this.persistentStoragePath);
+			
 		}
-		
+	
 	}
 
 	
@@ -54,7 +153,7 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 		
 		V returnValue = this.memoryStore.get(key);
 		
-		if (Configuration.USE_PERSISTENT_STORAGE && returnValue == null) {
+		if (this.usePersistentStorage && returnValue == null) {
 
 			returnValue = this.diskStore.get(key);
 		}
@@ -82,7 +181,7 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 			
 			synchronized(this) {
 				
-				if (Configuration.USE_PERSISTENT_STORAGE && this.memoryStore.getLoadFactor() >= Configuration.LOAD_FACTOR_THRESHOLD) {
+				if (this.usePersistentStorage && this.memoryStore.getLoadFactor() >= this.loadFactorThreshold) {
 					
 					MemoryManager<K, V> memoryManager = new MemoryManager<K, V>(memoryStore, diskStore);
 					
@@ -110,7 +209,7 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 		
 		String stringRepresentation  = "Memory Store: " + this.memoryStore.toString() + "\n";
 		
-		if (Configuration.USE_PERSISTENT_STORAGE) {
+		if (this.usePersistentStorage) {
 			
 			stringRepresentation += "Disk Store: " + this.diskStore.toString();
 			
