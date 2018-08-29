@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import com.vefve.db.exceptions.CreateNodeException;
 import com.vefve.db.store.disk.DiskStore;
 import com.vefve.db.store.memory.MemoryStore;
 
@@ -28,8 +29,9 @@ public class MemoryManager<K extends Serializable & Comparable<K>, V extends Ser
 	/**
 	 * Backs up the data in the {@code memoryStore} to the {@code diskStore} and
 	 * empties the {@code memoryStore}
+	 * @throws CreateNodeException 
 	 */
-	public void backupToDisk() {
+	public void backupToDisk() throws CreateNodeException {
 
 		synchronized (this) {
 			

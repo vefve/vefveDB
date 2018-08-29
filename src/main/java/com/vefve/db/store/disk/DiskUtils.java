@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -15,6 +18,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.vefve.db.Configuration;
+import com.vefve.db.exceptions.CreateNodeException;
 
 /**
  * @author vefve
@@ -22,6 +26,8 @@ import com.vefve.db.Configuration;
  * Contains utilities for disk operations.
  */
 public class DiskUtils {
+	
+	private static final Logger logger = LogManager.getLogger(DiskUtils.class);
 
 	public Node readNodeFromDisk(String filePath) {
 		
@@ -60,7 +66,7 @@ public class DiskUtils {
 		return null;
 	}
 
-	public String writeNodeToDisk(Node node) {
+	public String writeNodeToDisk(Node node) throws CreateNodeException {
 
 		String filePath;
 		
@@ -72,23 +78,19 @@ public class DiskUtils {
 			
 			String rootUUID = UUID.randomUUID().toString();
 			
-			// TODO: Check that the directory exists. And make the directory configurable.
-			File rootFile = new File(Configuration.PERSISTANT_STORAGE_PATH + rootUUID);
-			
 			try {
+				File rootFile = new File(Configuration.PERSISTANT_STORAGE_PATH + rootUUID);
 				
 				rootFile.createNewFile();
 				
+				filePath = rootFile.getAbsolutePath();
+				
+				node.setFilePath(filePath);
+				
 			} catch (IOException e) {
 				
-				// TODO Log here
-				e.printStackTrace();
-				
+				throw new CreateNodeException(Configuration.PERSISTANT_STORAGE_PATH + rootUUID);
 			}
-			
-			filePath = rootFile.getAbsolutePath();
-			
-			node.setFilePath(filePath);
 			
 		}
 		

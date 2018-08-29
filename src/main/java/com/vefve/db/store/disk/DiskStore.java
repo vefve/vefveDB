@@ -1,14 +1,12 @@
 package com.vefve.db.store.disk;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.vefve.db.Configuration;
+import com.vefve.db.exceptions.CreateNodeException;
 import com.vefve.db.store.Store;
 import com.vefve.db.store.memory.MemoryStore;
 import com.vefve.db.utils.Utils;
@@ -46,8 +44,9 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	
 	/**
 	 * Initializes an empty B-tree.
+	 * @throws CreateNodeException 
 	 */
-	public DiskStore() {
+	public DiskStore() throws CreateNodeException {
 		diskUtils = new DiskUtils();
 		
 		root = diskUtils.writeNodeToDisk(new Node(0));
@@ -165,10 +164,11 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 * @param val
 	 *            the value
 	 * @return 
+	 * @throws CreateNodeException 
 	 * @throws IllegalArgumentException
 	 *             if {@code key} is {@code null}
 	 */
-	public boolean put(K key, V val) {
+	public boolean put(K key, V val) throws CreateNodeException {
 		
 		if (key == null) {
 			
@@ -209,7 +209,7 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	}
 
 	
-	private String insert(Node root, K key, V value, int height) {
+	private String insert(Node root, K key, V value, int height) throws CreateNodeException {
 		
 		int j;
 		
@@ -290,7 +290,7 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	/*
 	 * Split the node in half.
 	 */
-	private String split(Node root) {
+	private String split(Node root) throws CreateNodeException {
 		
 		Node newNode = new Node(Configuration.BRANCHING_FACTOR / 2);
 		

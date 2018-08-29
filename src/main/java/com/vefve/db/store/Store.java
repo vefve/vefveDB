@@ -1,6 +1,9 @@
 package com.vefve.db.store;
 
+import java.io.IOException;
 import java.io.Serializable;
+
+import com.vefve.db.exceptions.CreateNodeException;
 
 /**
  * @author vefve
@@ -23,6 +26,7 @@ public interface Store<Key extends Serializable & Comparable<Key>, Value extends
 	 *            corresponding to the given key to be stored in the Key-Value
 	 *            Store.
 	 * @return 
+	 * @throws IOException 
 	 */
-	public boolean put(Key key, Value value);
+	public boolean put(Key key, Value value) throws CreateNodeException;
 }
