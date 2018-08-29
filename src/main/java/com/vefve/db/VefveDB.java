@@ -1,3 +1,6 @@
+/**
+ * VefveDB implementation
+ */
 package com.vefve.db;
 
 import java.io.Serializable;
@@ -9,6 +12,14 @@ import com.vefve.db.store.MemoryManager;
 import com.vefve.db.store.disk.DiskStore;
 import com.vefve.db.store.memory.MemoryStore;
 
+/**
+ * VefveDB implementation
+ * 
+ * @author vefve
+ *
+ * @param <K> Key type. Has to be Serializable and Comparable.
+ * @param <V> Value type. Has to be Serializable.
+ */
 public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializable> {
 
 	private MemoryStore<K, V> memoryStore;
@@ -33,6 +44,12 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 	}
 
 	
+	/**
+	 * Returns the value corresponding to the given key, if present in the DB Store.
+	 * @param key Key to search in the DB.
+	 * 
+	 * @return Returns the value corresponding to the given key, if present in the DB Store.
+	 */
 	public V get(K key) {
 		
 		V returnValue = this.memoryStore.get(key);
@@ -46,6 +63,13 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 	}
 
 	
+	/**
+	 * Insert a Key-Value pair in the DB Store.
+	 * 
+	 * @param key Key to be inserted.
+	 * @param value Value to be inserted.
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 */
 	public void put(K key, V value) throws CreateNodeException {
 
 		if (key == null || value == null) {
@@ -79,11 +103,19 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 	}
 	
 	
+	/**
+	 * Returns String representation of the current state of the DB Store.
+	 */
 	public String toString() {
+		
 		String stringRepresentation  = "Memory Store: " + this.memoryStore.toString() + "\n";
+		
 		if (Configuration.USE_PERSISTENT_STORAGE) {
+			
 			stringRepresentation += "Disk Store: " + this.diskStore.toString();
+			
 		}
+		
 		return stringRepresentation;
 		
 	}

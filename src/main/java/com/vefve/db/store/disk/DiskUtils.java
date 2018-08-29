@@ -1,5 +1,5 @@
 /**
- * 
+ * Persistent Storage implementation for VefveDB.
  */
 package com.vefve.db.store.disk;
 
@@ -21,14 +21,20 @@ import com.vefve.db.Configuration;
 import com.vefve.db.exceptions.CreateNodeException;
 
 /**
- * @author vefve
- *
  * Contains utilities for disk operations.
+ * 
+ * @author vefve
  */
 public class DiskUtils {
 	
 	private static final Logger logger = LogManager.getLogger(DiskUtils.class);
 
+	
+	/**
+	 * Reads and deserializes a node specified by the {@code filePath}.
+	 * @param filePath File path of the node.
+	 * @return Deserialized node.
+	 */
 	public Node readNodeFromDisk(String filePath) {
 		
 		if (filePath == null) {
@@ -66,6 +72,13 @@ public class DiskUtils {
 		return null;
 	}
 
+	
+	/**
+	 * Serializes and writes a node to the disk
+	 * @param node Node to save.
+	 * @return filePath File path of the node saved.
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 */
 	public String writeNodeToDisk(Node node) throws CreateNodeException {
 
 		String filePath;

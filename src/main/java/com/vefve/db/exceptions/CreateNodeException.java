@@ -9,6 +9,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
+ * Custom exception for error in creating a new file for the B-Tree node.
+ * 
  * @author vefve
  *
  */

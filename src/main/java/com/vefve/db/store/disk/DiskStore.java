@@ -1,3 +1,6 @@
+/**
+ * Persistent Storage implementation for VefveDB.
+ */
 package com.vefve.db.store.disk;
 
 import java.io.Serializable;
@@ -15,6 +18,7 @@ import com.vefve.db.utils.Utils;
 
 /**
  * DiskStore uses a B-Tree to store the Key-Value pairs on the disk.
+ * 
  * @author vefve
  *
  * @param <K>
@@ -47,7 +51,8 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	
 	/**
 	 * Initializes an empty B-tree.
-	 * @throws CreateNodeException 
+	 * 
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
 	 */
 	public DiskStore(ReentrantReadWriteLock lock) throws CreateNodeException {
 		this.diskUtils = new DiskUtils();
@@ -55,34 +60,6 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 		this.root = diskUtils.writeNodeToDisk(new Node(0));
 		
 		this.lock = lock;
-		
-	}
-	
-	
-	public void acquireReadLock() {
-		
-		lock.readLock().lock();
-		
-	}
-	
-	
-	public void releaseReadLock() {
-		
-		lock.readLock().unlock();
-		
-	}
-	
-	
-	public void acquireWriteLock() {
-		
-		lock.writeLock().lock();
-		
-	}
-	
-	
-	public void releaseWriteLock() {
-		
-		lock.writeLock().unlock();
 		
 	}
 
@@ -125,10 +102,8 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 *
 	 * @param key
 	 *            the key
-	 * @return the value associated with the given key if the key is in the symbol
-	 *         table and {@code null} if the key is not in the symbol table
-	 * @throws IllegalArgumentException
-	 *             if {@code key} is {@code null}
+	 * @return the value associated with the given key if the key is in the dbStore
+	 *         and {@code null} if the key is not in the dbStore
 	 */
 	public V get(K key) {
 		
@@ -147,6 +122,15 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 		return v;
 	}
 
+	
+	/**
+	 * Search a node in the given subtree.
+	 * 
+	 * @param nodePath File path of the root of the subtree to search in.
+	 * @param key Key to search in the subtree.
+	 * @param height Height of the subtree.
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	private V search(String nodePath, K key, int height) {
 		
@@ -200,15 +184,14 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	 * @param val
 	 *            the value
 	 * @return 
-	 * @throws CreateNodeException 
-	 * @throws IllegalArgumentException
-	 *             if {@code key} is {@code null}
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
 	 */
 	public boolean put(K key, V val) throws CreateNodeException {
 		
 		if (key == null) {
 			
-			//TODO: Add logging.
+			logger.info("Key cannot be null.");
+			
 			return false;
 			
 		}
@@ -250,7 +233,16 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 		
 	}
 
-	
+	/**
+	 * Inserts the Key-Value pair in the given subtree.
+	 * 
+	 * @param root Root of the subtree to insert the Key-Value pair in.
+	 * @param key Key to be inserted.
+	 * @param value Value to be inserted.
+	 * @param height Height of the subtree.
+	 * @return
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 */
 	private String insert(Node root, K key, V value, int height) throws CreateNodeException {
 		
 		int j;

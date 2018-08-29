@@ -1,5 +1,5 @@
 /**
- * 
+ * VefveDB implementation
  */
 package com.vefve.db;
 
@@ -8,6 +8,8 @@ import java.io.IOException;
 import com.vefve.db.exceptions.CreateNodeException;
 
 /**
+ * Entrypoint to debug the DB.
+ * 
  * @author vefve
  *
  */
@@ -16,7 +18,6 @@ public class Entrypoint {
 	/**
 	 * @param args
 	 * @throws CreateNodeException 
-	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws CreateNodeException {
 		

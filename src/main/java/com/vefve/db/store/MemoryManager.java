@@ -1,3 +1,6 @@
+/**
+ * Storage for VefveDB.
+ */
 package com.vefve.db.store;
 
 import java.io.Serializable;
@@ -9,6 +12,7 @@ import com.vefve.db.store.disk.DiskStore;
 import com.vefve.db.store.memory.MemoryStore;
 
 /**
+ * Memory Manager to perform maintainence operations on the DB Store.
  * 
  * @author vefve
  */
@@ -18,6 +22,7 @@ public class MemoryManager<K extends Serializable & Comparable<K>, V extends Ser
 
 	private DiskStore<K, V> diskStore;
 
+	
 	public MemoryManager(MemoryStore<K, V> memoryStore, DiskStore<K, V> diskStore) {
 
 		this.memoryStore = memoryStore;
@@ -29,7 +34,8 @@ public class MemoryManager<K extends Serializable & Comparable<K>, V extends Ser
 	/**
 	 * Backs up the data in the {@code memoryStore} to the {@code diskStore} and
 	 * empties the {@code memoryStore}
-	 * @throws CreateNodeException 
+	 * 
+	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
 	 */
 	public void backupToDisk() throws CreateNodeException {
 

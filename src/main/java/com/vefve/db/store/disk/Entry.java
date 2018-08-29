@@ -1,5 +1,5 @@
 /**
- * 
+ * Persistent Storage implementation for VefveDB.
  */
 package com.vefve.db.store.disk;
 
@@ -9,22 +9,25 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author kuber
+ * Structure of each Entry in the B-Tree.
+ * 
+ * @author vefve
  *
  */
 // internal nodes: only use key and next
 // external nodes: only use key and value
 public class Entry implements Serializable {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	
 	private Comparable key;
 	
 	private Object val;
 	
-	private String next; // helper field to iterate over array entries
+	/*
+	 * Helper field to iterate over array entries
+	 */
+	private String next;
 
 	
 	/*

@@ -1,5 +1,5 @@
 /**
- * 
+ * In-Memory implementation for VefveDB.
  */
 package com.vefve.db.store.memory;
 
@@ -13,6 +13,8 @@ import com.vefve.db.exceptions.CreateNodeException;
 import com.vefve.db.store.disk.DiskStore;
 
 /**
+ * Tests for MemoryStore.
+ * 
  * @author vefve
  *
  */

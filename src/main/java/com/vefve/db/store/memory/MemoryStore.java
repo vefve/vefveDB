@@ -1,3 +1,6 @@
+/**
+ * In-Memory storage implementation for VefveDB.
+ */
 package com.vefve.db.store.memory;
 
 import java.io.Serializable;
