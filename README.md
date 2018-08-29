@@ -29,3 +29,7 @@ vefveDB.get("www.cs.princeton.edu");
 
 #### Running Unit Tests
 - Run `mvn test`
+
+#### Store Implementations
+- The `MemoryStore` implementation uses a ConcurrentHashMap.
+- The `DiskStore` implementation uses a B-Tree to store data on the disk
