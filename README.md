@@ -1,4 +1,4 @@
-# VefveDB
+# vefveDB
 
 **A disk backed, memory based Key-Value store.**
 
