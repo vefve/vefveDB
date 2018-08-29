@@ -2,6 +2,7 @@ package com.vefve.db;
 
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.vefve.db.exceptions.CreateNodeException;
 import com.vefve.db.store.MemoryManager;
@@ -14,6 +15,8 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 	
 	private DiskStore<K, V> diskStore;
 	
+	private ReentrantReadWriteLock diskStoreLock;
+	
 	
 	public VefveDB() throws CreateNodeException {
 		
@@ -21,7 +24,9 @@ public class VefveDB<K extends Serializable & Comparable<K>, V extends Serializa
 		
 		if (Configuration.USE_PERSISTENT_STORAGE) {
 		
-			this.diskStore = new DiskStore<K, V>();
+			this.diskStoreLock = new ReentrantReadWriteLock();
+			
+			this.diskStore = new DiskStore<K, V>(this.diskStoreLock);
 		
 		}
 		

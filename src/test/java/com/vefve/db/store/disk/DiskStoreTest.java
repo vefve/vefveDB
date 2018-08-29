@@ -1,5 +1,7 @@
 package com.vefve.db.store.disk;
 
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -9,8 +11,10 @@ class DiskStoreTest {
 
 	@Test
 	void testAddRemove() throws CreateNodeException {
+
+		ReentrantReadWriteLock diskStoreLock = new ReentrantReadWriteLock();
 		
-		DiskStore<String, String> diskStore = new DiskStore<String, String>();
+		DiskStore<String, String> diskStore = new DiskStore<String, String>(diskStoreLock);
 		
 		diskStore.put("www.cs.princeton.edu", "128.112.136.11");
 		
@@ -41,8 +45,10 @@ class DiskStoreTest {
 	
 	@Test
 	void testDuplicate() throws CreateNodeException {
+
+		ReentrantReadWriteLock diskStoreLock = new ReentrantReadWriteLock();
 		
-		DiskStore<String, String> diskStore = new DiskStore<String, String>();
+		DiskStore<String, String> diskStore = new DiskStore<String, String>(diskStoreLock);
 		
 		diskStore.put("www.cs.princeton.edu", "128.112.136.12");
 		

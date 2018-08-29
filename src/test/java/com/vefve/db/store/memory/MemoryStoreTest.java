@@ -4,6 +4,7 @@
 package com.vefve.db.store.memory;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -54,13 +55,15 @@ public class MemoryStoreTest {
 	@Test
 	void testDuplicate() throws CreateNodeException {
 		
-		DiskStore<String, String> diskStore = new DiskStore<String, String>();
+		ConcurrentHashMap<String, String> concurrentMap = new ConcurrentHashMap<String, String>();
 		
-		diskStore.put("www.cs.princeton.edu", "128.112.136.12");
+		MemoryStore<String, String> memoryStore = new MemoryStore<String, String>(concurrentMap);
 		
-		diskStore.put("www.cs.princeton.edu", "128.112.136.11");
+		memoryStore.put("www.cs.princeton.edu", "128.112.136.12");
 		
-		Assert.assertEquals("128.112.136.11", diskStore.get("www.cs.princeton.edu"));
+		memoryStore.put("www.cs.princeton.edu", "128.112.136.11");
+		
+		Assert.assertEquals("128.112.136.11", memoryStore.get("www.cs.princeton.edu"));
 		
 	}
 	

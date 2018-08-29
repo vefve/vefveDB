@@ -1,6 +1,7 @@
 package com.vefve.db.store.disk;
 
 import java.io.Serializable;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,19 +41,50 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 	private int n;
 	
 	private DiskUtils diskUtils;
+	
+	private ReentrantReadWriteLock lock;
 
 	
 	/**
 	 * Initializes an empty B-tree.
 	 * @throws CreateNodeException 
 	 */
-	public DiskStore() throws CreateNodeException {
-		diskUtils = new DiskUtils();
+	public DiskStore(ReentrantReadWriteLock lock) throws CreateNodeException {
+		this.diskUtils = new DiskUtils();
 		
-		root = diskUtils.writeNodeToDisk(new Node(0));
+		this.root = diskUtils.writeNodeToDisk(new Node(0));
+		
+		this.lock = lock;
 		
 	}
-
+	
+	
+	public void acquireReadLock() {
+		
+		lock.readLock().lock();
+		
+	}
+	
+	
+	public void releaseReadLock() {
+		
+		lock.readLock().unlock();
+		
+	}
+	
+	
+	public void acquireWriteLock() {
+		
+		lock.writeLock().lock();
+		
+	}
+	
+	
+	public void releaseWriteLock() {
+		
+		lock.writeLock().unlock();
+		
+	}
 
 
 	/**
@@ -106,7 +138,11 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 			
 		}
 		
+		this.lock.readLock().lock();
+		
 		V v = search(root, key, height);
+		
+		this.lock.readLock().unlock();
 		
 		return v;
 	}
@@ -177,6 +213,8 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 			
 		}
 		
+		this.lock.writeLock().lock();
+		
 		Node _root = diskUtils.readNodeFromDisk(root);
 		
 		String u = insert(_root, key, val, height);
@@ -184,6 +222,8 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 		n++;
 		
 		if (u == null) {
+			
+			this.lock.writeLock().unlock();
 			
 			return true;
 			
@@ -203,6 +243,8 @@ public class DiskStore<K extends Serializable & Comparable<K>, V extends Seriali
 		root = newNodePath;
 		
 		height++;
+		
+		this.lock.writeLock().unlock();
 		
 		return true;
 		
