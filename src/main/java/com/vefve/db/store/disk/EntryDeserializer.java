@@ -21,6 +21,7 @@ public class EntryDeserializer extends StdDeserializer<Entry> {
 
 	private static final long serialVersionUID = 1L;
 
+	
 	/*
 	 * This is needed for Jackson Deserializer to work.
 	 */
@@ -28,10 +29,12 @@ public class EntryDeserializer extends StdDeserializer<Entry> {
 		this(null);
 	}
 
+	
 	public EntryDeserializer(Class<?> vc) {
 		super(vc);
 	}
 
+	
 	/**
 	 * Deserializer for {@code Entry} class.
 	 */

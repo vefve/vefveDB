@@ -84,7 +84,8 @@ public class MemoryStore<K extends Serializable & Comparable<K>, V extends Seria
 
 	
 	/**
-	 * Removes the key (and its corresponding value) from this dbStore. This method does nothing if the key is not in the dbStore.
+	 * Removes the key (and its corresponding value) from this dbStore.
+	 * This method does nothing if the key is not in the dbStore.
 	 * 
 	 * @param key The key that needs to be removed.
 	 */

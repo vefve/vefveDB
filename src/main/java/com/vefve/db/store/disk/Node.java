@@ -14,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author vefve
  *
  */
-
 public final class Node implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -34,8 +33,6 @@ public final class Node implements Serializable {
 		childrenCount = k;
 		
 		children = new Entry[branchingFactor];
-		//Debug
-//		children[0] = new Entry(null, null, null);
 
 	}
 

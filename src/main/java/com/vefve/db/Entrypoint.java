@@ -16,7 +16,9 @@ public class Entrypoint {
 
 	/**
 	 * @param args
+	 * 
 	 * @throws CreateNodeException If unable to create a new file for the B-Tree node.
+	 * 
 	 * @throws ReadNodeException If unable to read a file for the B-Tree node.
 	 */
 	public static void main(String[] args) throws CreateNodeException, ReadNodeException {
@@ -50,8 +52,6 @@ public class Entrypoint {
 		System.out.println("dell.com:          " + vefveDB.get("www.dell.com"));
 		System.out.println();
 
-//		System.out.println("size:    " + vefveDB.size());
-//		System.out.println("height:  " + vefveDB.height());
 		System.out.println(vefveDB);
 		System.out.println();
 	}
